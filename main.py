@@ -9,7 +9,6 @@ pygame.init()
 SCREEN_WIDTH = 800  # Ширина экрана
 SCREEN_HEIGHT = 600  # Высота экрана
 FPS = 120  # Частота кадров в секунду
-COLORS = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 165, 0)]  # Цвета для фигур
 
 # Инициализация экрана
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
