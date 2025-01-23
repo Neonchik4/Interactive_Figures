@@ -15,6 +15,7 @@ COLORS = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 165, 0)]  # Цвета д
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Интерактивные фигуры")
 
+
 # Класс для фигур
 class Shape:
     def __init__(self, x, y, shape_type, color):
@@ -40,6 +41,7 @@ class Shape:
             points = [(self.x + 40 * math.cos(i * angle), self.y + 40 * math.sin(i * angle)) for i in range(6)]
             pygame.draw.polygon(screen, self.color, points)
 
+
 # Список фигур
 shapes = []
 dragged_shape = None  # Флаг для отслеживания перетаскиваемой фигуры
@@ -57,14 +59,26 @@ while running:
             running = False
         elif event.type == pygame.KEYDOWN:  # Нажатие клавиши
             # Создание фигур по нажатию клавиш
+            r_color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
             if event.key == pygame.K_1:
-                shapes.append(Shape(random.randint(50, SCREEN_WIDTH - 50), random.randint(50, SCREEN_HEIGHT - 50), "circle", random.choice(COLORS)))
+                shapes.append(
+                    Shape(random.randint(50, SCREEN_WIDTH - 50), random.randint(50, SCREEN_HEIGHT - 50),
+                          "circle", r_color))
             elif event.key == pygame.K_2:
-                shapes.append(Shape(random.randint(50, SCREEN_WIDTH - 50), random.randint(50, SCREEN_HEIGHT - 50), "square", random.choice(COLORS)))
+                shapes.append(
+                    Shape(random.randint(50, SCREEN_WIDTH - 50), random.randint(50, SCREEN_HEIGHT - 50),
+                          "square", r_color))
             elif event.key == pygame.K_3:
-                shapes.append(Shape(random.randint(50, SCREEN_WIDTH - 50), random.randint(50, SCREEN_HEIGHT - 50), "triangle", random.choice(COLORS)))
+                shapes.append(
+                    Shape(random.randint(50, SCREEN_WIDTH - 50), random.randint(50, SCREEN_HEIGHT - 50),
+                          "triangle", r_color))
             elif event.key == pygame.K_4:
-                shapes.append(Shape(random.randint(50, SCREEN_WIDTH - 50), random.randint(50, SCREEN_HEIGHT - 50), "hexagon", random.choice(COLORS)))
+                shapes.append(
+                    Shape(random.randint(50, SCREEN_WIDTH - 50), random.randint(50, SCREEN_HEIGHT - 50),
+                          "hexagon", r_color))
+            elif event.key == pygame.K_SPACE:  # Удаление последней добавленной фигуры
+                if shapes:  # Проверяем, есть ли фигуры
+                    shapes.pop()  # Удаляем последнюю фигуру из списка
         elif event.type == pygame.MOUSEBUTTONDOWN:  # Нажатие кнопки мыши
             for shape in reversed(shapes):  # Проверка, какая фигура была нажата
                 if shape.shape_type == "circle" and math.hypot(shape.x - event.pos[0], shape.y - event.pos[1]) < 40:
@@ -73,14 +87,16 @@ while running:
                     shape.offset_y = shape.y - event.pos[1]  # Рассчитать смещение по Y
                     dragged_shape = shape  # Запоминаем перетаскиваемую фигуру
                     break
-                elif shape.shape_type == "square" and shape.x - 40 <= event.pos[0] <= shape.x + 40 and shape.y - 40 <= event.pos[1] <= shape.y + 40:
+                elif shape.shape_type == "square" and shape.x - 40 <= event.pos[0] <= shape.x + 40 and shape.y - 40 <= \
+                        event.pos[1] <= shape.y + 40:
                     shape.is_dragged = True
                     shape.offset_x = shape.x - event.pos[0]
                     shape.offset_y = shape.y - event.pos[1]
                     dragged_shape = shape
                     break
                 elif shape.shape_type == "triangle":
-                    triangle_points = [(shape.x, shape.y - 50), (shape.x - 45, shape.y + 30), (shape.x + 45, shape.y + 30)]
+                    triangle_points = [(shape.x, shape.y - 50), (shape.x - 45, shape.y + 30),
+                                       (shape.x + 45, shape.y + 30)]
                     if pygame.draw.polygon(screen, (0, 0, 0, 0), triangle_points).collidepoint(event.pos):
                         shape.is_dragged = True
                         shape.offset_x = shape.x - event.pos[0]
@@ -89,7 +105,8 @@ while running:
                         break
                 elif shape.shape_type == "hexagon":
                     angle = math.pi / 3
-                    points = [(shape.x + 40 * math.cos(i * angle), shape.y + 40 * math.sin(i * angle)) for i in range(6)]
+                    points = [(shape.x + 40 * math.cos(i * angle), shape.y + 40 * math.sin(i * angle)) for i in
+                              range(6)]
                     if pygame.draw.polygon(screen, (0, 0, 0, 0), points).collidepoint(event.pos):
                         shape.is_dragged = True
                         shape.offset_x = shape.x - event.pos[0]
@@ -99,6 +116,9 @@ while running:
         elif event.type == pygame.MOUSEBUTTONUP:  # Отпускание кнопки мыши
             if dragged_shape:
                 dragged_shape.is_dragged = False  # Завершаем перетаскивание
+                # Перемещение перетаскиваемой фигуры в конец списка
+                shapes.remove(dragged_shape)
+                shapes.append(dragged_shape)
                 dragged_shape = None  # Сброс перетаскиваемой фигуры
         elif event.type == pygame.MOUSEMOTION:  # Движение мыши
             if dragged_shape:  # Если фигура перетаскивается
@@ -110,10 +130,9 @@ while running:
         if not shape.is_dragged:
             shape.draw()
 
-    # Отрисовка перетаскиваемой фигуры поверх всех остальных
-    for shape in shapes:
-        if shape.is_dragged:
-            shape.draw()
+    # Отрисовка перетаскиваемой фигуры поверх остальных
+    if dragged_shape:
+        dragged_shape.draw()
 
     pygame.display.flip()  # Обновление экрана
     clock.tick(FPS)  # Ограничение частоты кадров
